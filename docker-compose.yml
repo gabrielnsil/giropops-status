@@ -1,0 +1,38 @@
+# Docker Compose pra avaliação rápida: sobe a aplicação completa
+# (Flask + Redis) com 1 comando.
+#
+#   docker compose up
+#
+# Acessa http://localhost:5000
+# Métricas Prometheus em http://localhost:5000/metrics
+#
+# ATENÇÃO PRA QUEM ESTUDA O LIVRO:
+# Este arquivo NÃO faz parte da Fase 1 (Descomplicando Linux). Lá você
+# roda a aplicação manualmente pra praticar systemd, permissões, logs.
+# Docker entra só na Fase 2.
+# Use este compose só pra:
+#  - Avaliar se a aplicação funciona no seu ambiente
+#  - Demonstração rápida em call ou apresentação
+#  - Validar features antes de submeter PR
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+    depends_on:
+      redis:
+        condition: service_healthy
